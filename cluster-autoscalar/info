@@ -1,0 +1,24 @@
+# Check this website
+# https://katharharshal1.medium.com/kubernetes-cluster-autoscaling-ca-using-aws-eks-4aab8c89f9a1
+
+#curl -o cluster-autoscaler-autodiscover.yaml https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+
+Edit cluster-autoscaler-autodiscover.yaml and change name of cluster
+
+          command:
+            - ./cluster-autoscaler
+            - --v=4
+            - --stderrthreshold=info
+            - --cloud-provider=aws
+            - --skip-nodes-with-local-storage=false
+            - --expander=least-waste
+            - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/<YOUR CLUSTER NAME>
+
+
+# kubectl apply -f cluster-autoscaler-autodiscover.yaml
+$ kubectl get pods -n kube-system
+$ kubectl logs <pod_name> -f -n kube-system 
+-f means "follow" you're asking Kubernetes to continuously show the logs of the specified pod in real-time.
+-n means "namespace"
+$ kubectl describe pod <pod_name> -n kube-system
+

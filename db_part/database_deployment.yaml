@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database-pod
+spec:
+  serviceName: db-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-label
+  template:
+    metadata:
+      labels:
+        app: db-label
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: alpha.eksctl.io/nodegroup-name
+                operator: In
+                values:
+                - worker-ng-small
+      imagePullSecrets:
+        - name: ecr-registry
+      containers:
+        - name: db-container
+          image: 905418049611.dkr.ecr.us-west-2.amazonaws.com/chatapp:db_img_ecr
+          ports:
+            - containerPort: 3306
+          envFrom:
+            - secretRef:
+                name: db-all-data-secret # Using the secret here
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: db-persist-volume
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: db-persist-volume
+          persistentVolumeClaim:
+            claimName: db-mysql-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+spec:
+  selector:
+    app: db-label
+  ports:
+    - port: 3306

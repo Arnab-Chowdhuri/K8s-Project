@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: be-label
+  template:
+    metadata:
+      labels:
+        app: be-label
+    spec:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: alpha.eksctl.io/nodegroup-name
+                operator: In
+                values:
+                - worker-ng-medium
+      imagePullSecrets:
+        - name: ecr-registry
+      containers:
+        - name: be-container
+          image: 905418049611.dkr.ecr.us-west-2.amazonaws.com/chatapp:be_img_ecr
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: be-configmap
+          imagePullPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: be-service
+spec:
+  selector:
+    app: be-label
+  ports:
+    - port: 8000
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: be-configmap
+data:
+  CHATDB: chat_db
+  CHATDBUSER: admin
+  CHATDBPASSWORD: admin
+  CHATDBHOST: db-service

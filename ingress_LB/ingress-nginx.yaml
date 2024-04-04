@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-nginx-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: a71e9cf353a844a0dbdf199b83fcc9c9-cac269dc9768fd02.elb.us-west-2.amazonaws.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: fe-service
+            port:
+              number: 80

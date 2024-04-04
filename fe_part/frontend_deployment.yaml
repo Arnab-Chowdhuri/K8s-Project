@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fe-label
+  template:
+    metadata:
+      labels:
+        app: fe-label
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: alpha.eksctl.io/nodegroup-name
+                operator: In
+                values:
+                - worker-ng-medium
+      imagePullSecrets:
+      - name: ecr-registry
+      containers:
+      - name: fe-container
+        image: 905418049611.dkr.ecr.us-west-2.amazonaws.com/chatapp:fe_img_ecr
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 80
+        envFrom:
+          - configMapRef:
+              name: fe-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fe-service
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: fe-label
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fe-configmap
+data:
+  BACKEND_HOST: be-service
